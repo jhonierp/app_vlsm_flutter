@@ -36,7 +36,7 @@ class _SubnetToIPScreenState extends State<SubnetToIPScreen> {
             TextField(
               controller: _maskController,
               decoration: InputDecoration(
-                labelText: 'Máscara de subred (ej: 255.255.255.0)',
+                labelText: 'Máscara de subred (ej: 24)',
               ),
             ),
             SizedBox(height: 20),
