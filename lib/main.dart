@@ -1,22 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pdf/pdf.dart';
 import 'dart:convert';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 void main() {
-  runApp(VLSMApp());
-}
-
-class VLSMApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VLSM Calculator',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: VLSMScreen(),
-    );
-  }
+  runApp(MaterialApp(title: 'VLSM Calculator', home: VLSMScreen()));
 }
 
 class VLSMScreen extends StatefulWidget {
@@ -27,97 +17,100 @@ class VLSMScreen extends StatefulWidget {
 class _VLSMScreenState extends State<VLSMScreen> {
   final TextEditingController _networkController = TextEditingController();
   final TextEditingController _subnetsController = TextEditingController();
-
   List<TextEditingController> _hostControllers = [];
-
-  String result = '';
   List<dynamic> subnets = [];
 
-  void _generateHostFields(int count) {
-    _hostControllers = List.generate(count, (index) => TextEditingController());
+  void _generateHostFields() {
+    final count = int.tryParse(_subnetsController.text);
+    if (count != null && count > 0) {
+      setState(() {
+        _hostControllers = List.generate(count, (_) => TextEditingController());
+      });
+    }
   }
 
-  Future<void> fetchVLSM(
-    String network,
-    int subnetsCount,
-    List<int> hostsList,
-  ) async {
-    final baseUrl =
-        'https://vlsmcalculator-production.up.railway.app/vlsm/calculate-json?';
-    final hostsParams = hostsList.map((h) => 'hosts=$h').join('&');
+  Future<void> _calculateVLSM() async {
+    final network = _networkController.text;
+    final subnetsCount = int.tryParse(_subnetsController.text);
+
+    if (network.isEmpty ||
+        subnetsCount == null ||
+        _hostControllers.any((c) => c.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor llena todos los campos')),
+      );
+      return;
+    }
+
+    final hosts = _hostControllers.map((c) => 'hosts=${c.text}').join('&');
 
     final url =
-        '$baseUrl'
-        'network=$network&subnets=$subnetsCount&$hostsParams';
+        'https://vlsmcalculator-production.up.railway.app/vlsm/calculate-json?network=$network&subnets=$subnetsCount&$hosts';
 
     try {
       final response = await http.get(Uri.parse(url));
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           subnets = data['subnets'];
-          result = "Cálculo de subredes exitoso. Ver detalles abajo.";
         });
       } else {
-        setState(() {
-          result = 'Error: ${response.statusCode}';
-          subnets = [];
-        });
+        throw Exception('Error al conectar con la API');
       }
     } catch (e) {
-      setState(() {
-        result = 'Error de conexión: $e';
-        subnets = [];
-      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
-  void _handleGenerateFields() {
-    final subnetsCount = int.tryParse(_subnetsController.text.trim());
-    if (subnetsCount != null && subnetsCount > 0) {
-      setState(() {
-        _generateHostFields(subnetsCount);
-        result = '';
-        subnets = [];
-      });
-    } else {
-      setState(() {
-        result = 'Por favor, ingresa un número válido de subredes.';
-        _hostControllers = [];
-      });
-    }
-  }
+  Future<void> _exportToPDF() async {
+    final pdf = pw.Document();
 
-  void _handleSubmit() {
-    final network = _networkController.text.trim();
-    final subnetsCount = _hostControllers.length;
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Resultado del cálculo VLSM',
+                style: pw.TextStyle(fontSize: 24),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                headers: [
+                  'Subred',
+                  'Netmask',
+                  'Hosts',
+                  'Primer Host',
+                  'Último Host',
+                  'Broadcast',
+                ],
+                data:
+                    subnets.map((s) {
+                      return [
+                        s['subnet'],
+                        s['netmask'],
+                        s['hosts'].toString(),
+                        s['firstHost'],
+                        s['lastHost'],
+                        s['broadcast'],
+                      ];
+                    }).toList(),
+                border: pw.TableBorder.all(),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                cellAlignment: pw.Alignment.centerLeft,
+              ),
+            ],
+          );
+        },
+      ),
+    );
 
-    if (network.isEmpty || subnetsCount == 0) {
-      setState(() {
-        result = "Por favor, completa todos los campos correctamente.";
-        subnets = [];
-      });
-      return;
-    }
-
-    final hostsList =
-        _hostControllers
-            .map((c) => int.tryParse(c.text.trim()))
-            .where((e) => e != null)
-            .cast<int>()
-            .toList();
-
-    if (hostsList.length != subnetsCount) {
-      setState(() {
-        result =
-            "Todos los campos de hosts deben estar llenos con números válidos.";
-        subnets = [];
-      });
-      return;
-    }
-
-    fetchVLSM(network, subnetsCount, hostsList);
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -125,80 +118,63 @@ class _VLSMScreenState extends State<VLSMScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Calculadora VLSM')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _networkController,
               decoration: InputDecoration(
-                labelText: 'Dirección de red (ej. 172.18.0.0)',
-                border: OutlineInputBorder(),
+                labelText: 'Dirección de red (ej: 172.18.0.0)',
               ),
+              keyboardType: TextInputType.text,
             ),
-            SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _subnetsController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Número de subredes',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _handleGenerateFields,
-                  child: Text("Generar campos"),
-                ),
-              ],
+            TextField(
+              controller: _subnetsController,
+              decoration: InputDecoration(labelText: 'Cantidad de subredes'),
+              keyboardType: TextInputType.number,
+              onChanged: (_) => _generateHostFields(),
             ),
             SizedBox(height: 16),
-            Column(
-              children: List.generate(_hostControllers.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: TextField(
-                    controller: _hostControllers[index],
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Hosts para subred ${index + 1}',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                );
-              }),
+            ..._hostControllers.asMap().entries.map(
+              (entry) => TextField(
+                controller: entry.value,
+                decoration: InputDecoration(
+                  labelText: 'Hosts para subred ${entry.key + 1}',
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _handleSubmit,
+              onPressed: _calculateVLSM,
               child: Text('Calcular VLSM'),
             ),
-            SizedBox(height: 20),
-            Text(result),
-            SizedBox(height: 10),
             if (subnets.isNotEmpty)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: subnets.length,
-                itemBuilder: (context, index) {
-                  final subnet = subnets[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text('Subred ${subnet['subnet']}'),
-                      subtitle: Text(
-                        'Netmask: ${subnet['netmask']}\n'
-                        'Hosts: ${subnet['hosts']}\n'
-                        'First Host: ${subnet['firstHost']}\n'
-                        'Last Host: ${subnet['lastHost']}\n'
-                        'Broadcast: ${subnet['broadcast']}',
-                      ),
-                    ),
-                  );
-                },
+              ElevatedButton.icon(
+                onPressed: _exportToPDF,
+                icon: Icon(Icons.picture_as_pdf),
+                label: Text('Exportar a PDF'),
+              ),
+            SizedBox(height: 20),
+            if (subnets.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children:
+                    subnets.map((s) {
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text('Subred: ${s['subnet']}'),
+                          subtitle: Text(
+                            'Netmask: ${s['netmask']}\n'
+                            'Hosts: ${s['hosts']}\n'
+                            'Primer host: ${s['firstHost']}\n'
+                            'Último host: ${s['lastHost']}\n'
+                            'Broadcast: ${s['broadcast']}',
+                          ),
+                        ),
+                      );
+                    }).toList(),
               ),
           ],
         ),
