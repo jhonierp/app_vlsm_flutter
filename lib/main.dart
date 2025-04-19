@@ -73,9 +73,19 @@ class _VLSMScreenState extends State<VLSMScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(
-                'Resultado del cálculo VLSM',
-                style: pw.TextStyle(fontSize: 24),
+              // Título con fondo color magenta
+              pw.Container(
+                width: double.infinity,
+                color: PdfColor.fromHex('#8E24AA'), // Color magenta
+                padding: pw.EdgeInsets.all(10),
+                child: pw.Text(
+                  'Resultado del cálculo VLSM',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.white,
+                  ),
+                ),
               ),
               pw.SizedBox(height: 20),
               pw.Table.fromTextArray(
@@ -98,9 +108,34 @@ class _VLSMScreenState extends State<VLSMScreen> {
                         s['broadcast'],
                       ];
                     }).toList(),
-                border: pw.TableBorder.all(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                cellAlignment: pw.Alignment.centerLeft,
+                border: pw.TableBorder.all(
+                  color: PdfColor.fromHex('#8E24AA'), // Magenta para el borde
+                  width: 1,
+                ),
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex(
+                    '#8E24AA',
+                  ), // Fondo magenta para encabezados
+                ),
+                cellStyle: pw.TextStyle(fontSize: 12, color: PdfColors.black),
+                cellAlignment: pw.Alignment.center,
+                headerAlignment: pw.Alignment.center,
+                // Removed unsupported 'decoration' parameter
+              ),
+              pw.SizedBox(height: 20),
+              // Agregar pie de página
+              pw.Container(
+                alignment: pw.Alignment.center,
+                padding: pw.EdgeInsets.all(8),
+                color: PdfColor.fromHex('#8E24AA'),
+                child: pw.Text(
+                  'Generado por VLSM Calculator',
+                  style: pw.TextStyle(fontSize: 12, color: PdfColors.white),
+                ),
               ),
             ],
           );
