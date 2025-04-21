@@ -15,9 +15,10 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
+    ndkVersion = "27.0.12077973"
     namespace = "com.codestar.vlsm_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

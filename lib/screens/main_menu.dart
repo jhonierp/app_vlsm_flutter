@@ -4,20 +4,28 @@ import 'subnet_to_ip.dart';
 import 'ip_info_screen.dart';
 import 'ssh_config_screen.dart';
 import 'server_monitor.dart';
+import 'package:vlsm_app/utils/banner.dart'; // Importa el banner
 
 class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Seleccionar Módulo')),
-      body: GridView.count(
-        crossAxisCount: 2,
-        children: <Widget>[
-          _buildCard(context, 'Cálculadora VLSM', VLSMScreen()),
-          _buildCard(context, 'Máscara a IP', SubnetToIPScreen()),
-          _buildCard(context, 'Información de la IP', IPScreen()),
-          _buildCard(context, 'DhcpSshHandle', SSHConfigScreen()),
-          _buildCard(context, 'monitoreo server', SSHScreen()),
+      body: Column(
+        children: [
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              children: <Widget>[
+                _buildCard(context, 'Cálculadora VLSM', VLSMScreen()),
+                _buildCard(context, 'Máscara a IP', SubnetToIPScreen()),
+                _buildCard(context, 'Información de la IP', IPScreen()),
+                _buildCard(context, 'DhcpSshHandle', SSHConfigScreen()),
+                _buildCard(context, 'monitoreo server', SSHScreen()),
+              ],
+            ),
+          ),
+          BannerAdWidget(), // Aquí se muestra el banner fijo
         ],
       ),
     );

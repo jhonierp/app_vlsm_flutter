@@ -41,6 +41,9 @@ dependencies:
   provider: ^6.1.3
 
   fl_chart: ^0.71.0
+
+  google_mobile_ads: ^4.0.0 # Google Mobile Ads SDK for Flutter
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
