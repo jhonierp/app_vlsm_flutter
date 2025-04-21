@@ -62,7 +62,7 @@ class _VLSMScreenState extends State<VLSMScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Calculadora VLSM')),
+      appBar: AppBar(title: Text('Calcular subredes usando VLSM')),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(

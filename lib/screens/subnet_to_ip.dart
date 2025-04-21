@@ -28,7 +28,7 @@ class _SubnetToIPScreenState extends State<SubnetToIPScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Máscara a IP')),
+      appBar: AppBar(title: Text('Convertir máscara a dirección IP')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

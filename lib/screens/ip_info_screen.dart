@@ -28,7 +28,7 @@ class _IPScreenState extends State<IPScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Información de la IP')),
+      appBar: AppBar(title: Text('Obtener información de la IP')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
