@@ -1,4 +1,4 @@
-package com.example.vlsm_app
+package com.codestar.vlsm_app
 
 import io.flutter.embedding.android.FlutterActivity
 
