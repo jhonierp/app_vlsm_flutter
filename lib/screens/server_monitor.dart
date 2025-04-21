@@ -47,6 +47,10 @@ class _SSHScreenState extends State<SSHScreen> {
         'Espacio en Disco': 'df -h',
         'Servicios Activos':
             'systemctl list-units --type=service --state=running',
+        'CPU': "top -bn1 | grep 'Cpu'",
+        'Procesos': 'ps aux --sort=-%mem | head -n 10',
+        'IP': "hostname -I | awk '{print \$1}'",
+        'Usuarios Conectados': 'who',
       };
 
       Map<String, String> results = {};
@@ -56,10 +60,7 @@ class _SSHScreenState extends State<SSHScreen> {
         results[entry.key] = utf8.decode(result);
       }
 
-      // Extraer datos RAM
       _parseRam(results['Memoria RAM'] ?? '');
-
-      // Filtrar servicios SSH y DHCP
       _filtrarServicios(results['Servicios Activos'] ?? '');
 
       setState(() {
@@ -99,9 +100,9 @@ class _SSHScreenState extends State<SSHScreen> {
     final servicios = raw.split('\n');
     final claves = ['ssh', 'dhcp', 'network', 'apache', 'nginx'];
     final filtrados =
-        servicios.where((line) {
-          return claves.any((clave) => line.toLowerCase().contains(clave));
-        }).toList();
+        servicios
+            .where((line) => claves.any((c) => line.toLowerCase().contains(c)))
+            .toList();
 
     setState(() {
       serviciosFiltrados = filtrados;
@@ -144,7 +145,8 @@ class _SSHScreenState extends State<SSHScreen> {
   }
 
   Widget _buildRamChart() {
-    if (usedRam == 0 && freeRam == 0) return SizedBox();
+    final total = usedRam + freeRam;
+    if (total == 0) return SizedBox();
 
     return Card(
       elevation: 4,
@@ -156,11 +158,12 @@ class _SSHScreenState extends State<SSHScreen> {
             'Uso de Memoria RAM',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
-          AspectRatio(
-            aspectRatio: 1.5,
+          SizedBox(
+            height: 200,
             child: PieChart(
               PieChartData(
+                sectionsSpace: 2,
+                centerSpaceRadius: 30,
                 sections: [
                   PieChartSectionData(
                     value: usedRam,
@@ -186,7 +189,7 @@ class _SSHScreenState extends State<SSHScreen> {
               ),
             ),
           ),
-          SizedBox(height: 10),
+          Text('Total: ${total.toInt()} MB'),
         ],
       ),
     );
