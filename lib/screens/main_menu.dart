@@ -3,6 +3,7 @@ import 'vlsm_screen.dart';
 import 'subnet_to_ip.dart';
 import 'ip_info_screen.dart';
 import 'ssh_config_screen.dart';
+import 'server_monitor.dart';
 
 class MainMenu extends StatelessWidget {
   @override
@@ -16,6 +17,7 @@ class MainMenu extends StatelessWidget {
           _buildCard(context, 'Máscara a IP', SubnetToIPScreen()),
           _buildCard(context, 'Información de la IP', IPScreen()),
           _buildCard(context, 'DhcpSshHandle', SSHConfigScreen()),
+          _buildCard(context, 'monitoreo server', SSHScreen()),
         ],
       ),
     );

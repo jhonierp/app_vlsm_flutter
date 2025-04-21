@@ -2,6 +2,7 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:http/http.dart' as http;
 
 class SSHService {
+  late SSHClient client;
   final String ip;
   final String username;
   final String password;
