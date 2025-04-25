@@ -53,11 +53,7 @@ class SSHService {
 authoritative;
 $configDHCP
 
-subnet 192.168.60.0 netmask 255.255.255.0 {
-    range 192.168.60.10 192.168.60.100;
-    option routers 192.168.60.1;
-    option domain-name-servers 8.8.8.8, 8.8.4.4;
-}
+
 ''';
 
       await client.execute(

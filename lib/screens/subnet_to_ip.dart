@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vlsm_app/services/api_service.dart';
+import 'package:vlsm_app/utils/banner.dart';
 
 class SubnetToIPScreen extends StatefulWidget {
   @override
@@ -49,6 +50,7 @@ class _SubnetToIPScreenState extends State<SubnetToIPScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: BannerAdWidget(),
     );
   }
 }

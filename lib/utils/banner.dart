@@ -14,8 +14,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   void initState() {
     super.initState();
     _bannerAd = BannerAd(
-      adUnitId:
-          'ca-app-pub-3940256099942544/6300978111', // ID de prueba de Google
+      adUnitId: 'ca-app-pub-3384674970891146/8289985721',
       size: AdSize.banner,
       request: AdRequest(),
       listener: BannerAdListener(
